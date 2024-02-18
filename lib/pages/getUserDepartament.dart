@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:pausabem/pages/LoadScreen.dart';
-import 'package:pausabem/src/models/departaments_model.dart';
 import 'package:pausabem/src/stores/departaments_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,6 +16,7 @@ class _GetUserDepartamentState extends State<GetUserDepartament> {
 
   @override
   void initState() {
+    super.initState();
     store.addListener(_listener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       store.getDepartaments();

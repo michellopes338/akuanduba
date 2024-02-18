@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
@@ -22,15 +20,13 @@ class _AlarmState extends State<Alarm> {
 
   final store = BreaktimesStore();
 
-  final double _xPos = 0.0;
-  final double _yPos = 0.0;
-
   var label = '';
 
   late Timer _timer;
 
   @override
   void initState() {
+    super.initState();
     store.addListener(_listener);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final int departamentId = await _getDepartamentId();
