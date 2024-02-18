@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:audioplayers/audioplayers.dart';
@@ -17,12 +18,16 @@ class _AlarmState extends State<Alarm> {
   final double headerSize = 40;
   final double columnWidth = 300;
   final _player = AudioPlayer();
+  List<Duration> _durations = List.empty();
 
   final store = BreaktimesStore();
 
-  var nextAlarm = '';
+  final double _xPos = 0.0;
+  final double _yPos = 0.0;
 
-  Timer? _timer;
+  var label = '';
+
+  late Timer _timer;
 
   @override
   void initState() {
@@ -41,7 +46,13 @@ class _AlarmState extends State<Alarm> {
   }
 
   void _listener() {
-    setState(() {});
+    setState(() {
+      _durations = store.value.breaktimes
+          .map((breakTimes) => breakTimes.secondsUntil)
+          .toList();
+    });
+    _startLabel();
+    _startTimer();
   }
 
   Future<void> _playMusic() async {
@@ -52,51 +63,51 @@ class _AlarmState extends State<Alarm> {
     await _player.stop();
   }
 
-  void _calcTimer() {
-    int firstValuePositive;
-    var firstValuePositiveWasFounded = false;
-    for (var i = 0; i < store.value.breaktimes.length; i++) {
-      var element = store.value.breaktimes[i];
-      var alarmTime = element.time.split(':').map((n) => int.parse(n)).toList();
+  void _startLabel() {
+    Duration? firstDurationPositive;
+    for (var e in _durations) {
+      if (e > Duration.zero) {
+        firstDurationPositive = e;
+        break;
+      }
+    }
+    if (firstDurationPositive != null) {
+      var hour = DateTime.now().add(firstDurationPositive).hour;
+      var minute = DateTime.now().add(firstDurationPositive).minute;
 
-      // check validate if nessesaire
+      setState(() {
+        label = '$hour:$minute';
+      });
+    } else {
+      setState(() {
+        label = 'Não há pausas';
+      });
+    }
+  }
 
-      const List<int> secondsHMS = [3600, 60, 1];
+  void _updateLabel(int i) {
+    String newLabel;
+    if (i + 1 >= store.value.breaktimes.length) {
+      newLabel = 'Não há pausas';
+    } else {
+      newLabel = store.value.breaktimes[i + 1].time;
+    }
 
-      var alarmSeconds = List<int>.generate(
-              min(secondsHMS.length, alarmTime.length),
-              (index) => secondsHMS[index] * alarmTime[index])
-          .fold(0, (previousValue, element) => previousValue + element);
+    setState(() {
+      label = newLabel;
+    });
+  }
 
-      var now = DateTime.now();
-      var currentTimeInSeconds = List<int>.generate(
-              secondsHMS.length,
-              (index) =>
-                  secondsHMS[index] * [now.hour, now.minute, now.second][index])
-          .fold(0, (previousValue, element) => previousValue + element);
-
-      var secondsUntilAlarm = alarmSeconds - currentTimeInSeconds;
-      print(secondsUntilAlarm);
-
-      if (secondsUntilAlarm < 0) {
+  void _startTimer() {
+    for (var i = 0; i < _durations.length; i++) {
+      var element = _durations[i];
+      if (element < Duration.zero) {
         continue;
       }
 
-      if (firstValuePositiveWasFounded == false && secondsUntilAlarm > 0) {
-        firstValuePositive = secondsUntilAlarm;
-        firstValuePositiveWasFounded = true;
-        setState(() {
-          nextAlarm = element.time;
-        });
-      }
-
-      _timer = Timer(Duration(seconds: secondsUntilAlarm), () {
-        if (i + 1 < store.value.breaktimes.length) {
-          setState(() {
-            nextAlarm = store.value.breaktimes[i + 1].time;
-          });
-          _playMusic();
-        }
+      _timer = Timer(element, () {
+        _playMusic();
+        _updateLabel(i);
       });
     }
   }
@@ -104,14 +115,13 @@ class _AlarmState extends State<Alarm> {
   @override
   void dispose() {
     store.removeListener(_listener);
-    _timer?.cancel();
+    _timer.cancel();
     _player.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    _calcTimer();
     return Scaffold(
       body: Container(
           width: double.infinity,
@@ -146,14 +156,14 @@ class _AlarmState extends State<Alarm> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Próximo alarme',
+                        'Próximo alarme:',
                         // textAlign: TextAlign.right,
                         style: TextStyle(
                           color: Color.fromARGB(255, 232, 179, 155),
                         ),
                       ),
                       Text(
-                        nextAlarm,
+                        label,
                         style: const TextStyle(
                           fontSize: 100,
                           color: Color.fromARGB(255, 232, 179, 155),
