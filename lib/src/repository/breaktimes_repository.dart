@@ -8,8 +8,11 @@ class BreaktimesRepository {
   final client = http.Client();
 
   Future<List<BreaktimesModel>> getBreaktimes(int departamentId) async {
-    const String defaultBreakConfig =
-        '[{"id_pause": 1, "time": "09:30", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "13:30", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "15:30", "duration": "5", "breakId": 3}]';
+    var now = DateTime.now().add(const Duration(seconds: 30));
+    var hour = now.hour.toString().padLeft(2, '0');
+    var minutes = now.minute.toString().padLeft(2, '0');
+    String defaultBreakConfig =
+        '[{"id_pause": 1, "time": "$hour:$minutes", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "10:00", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "14:00", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "16:30", "duration": "5", "breakId": 3}]';
     try {
       final response = await client
           .get(Uri.parse('http://localhost:3000/timers/$departamentId'));

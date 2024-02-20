@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:pausabem/src/models/breaktimes_model.dart';
 import 'package:pausabem/src/stores/breaktimes_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,7 +17,7 @@ class _AlarmState extends State<Alarm> {
   final double headerSize = 40;
   final double columnWidth = 300;
   final _player = AudioPlayer();
-  List<Duration> _durations = List.empty();
+  late List<BreaktimesModel> breaktimes;
 
   final store = BreaktimesStore();
 
@@ -43,9 +44,7 @@ class _AlarmState extends State<Alarm> {
 
   void _listener() {
     setState(() {
-      _durations = store.value.breaktimes
-          .map((breakTimes) => breakTimes.secondsUntil)
-          .toList();
+      breaktimes = store.value.breaktimes;
     });
     _startLabel();
     _startTimer();
@@ -60,50 +59,45 @@ class _AlarmState extends State<Alarm> {
   }
 
   void _startLabel() {
-    Duration? firstDurationPositive;
-    for (var e in _durations) {
-      if (e > Duration.zero) {
-        firstDurationPositive = e;
-        break;
-      }
-    }
-    if (firstDurationPositive != null) {
-      var hour = DateTime.now().add(firstDurationPositive).hour;
-      var minute = DateTime.now().add(firstDurationPositive).minute;
-
-      setState(() {
-        label = '$hour:$minute';
-      });
-    } else {
-      setState(() {
-        label = 'Não há pausas';
-      });
-    }
-  }
-
-  void _updateLabel(int i) {
-    String newLabel;
-    if (i + 1 >= store.value.breaktimes.length) {
-      newLabel = 'Não há pausas';
-    } else {
-      newLabel = store.value.breaktimes[i + 1].time;
-    }
+    var positiveDurations =
+        breaktimes.where((element) => element.secondsUntil > Duration.zero);
+    var newLabel = positiveDurations.isEmpty
+        ? 'Não há pausas'
+        : positiveDurations.first.time;
 
     setState(() {
       label = newLabel;
     });
   }
 
+  void _updateLabel(String newLabel) {
+    setState(() {
+      label = newLabel;
+    });
+  }
+
   void _startTimer() {
-    for (var i = 0; i < _durations.length; i++) {
-      var element = _durations[i];
-      if (element < Duration.zero) {
+    var positiveDurations = breaktimes
+        .where((element) => element.secondsUntil > Duration.zero)
+        .toList();
+    for (var i = 0; i < positiveDurations.length; i++) {
+      var element = breaktimes[i];
+
+      print(element.secondsUntil);
+
+      if (element.secondsUntil < Duration.zero) {
         continue;
       }
 
-      _timer = Timer(element, () {
+      _timer = Timer(element.secondsUntil, () {
+        var newLabel = 'Não há pausas';
+
+        if (element != positiveDurations.last) {
+          newLabel = positiveDurations[i + 1].time;
+        }
+
         _playMusic();
-        _updateLabel(i);
+        _updateLabel(newLabel);
       });
     }
   }
