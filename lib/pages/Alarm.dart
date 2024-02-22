@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:pausabem/src/models/breaktimes_model.dart';
 import 'package:pausabem/src/stores/breaktimes_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:window_manager/window_manager.dart';
 
 class Alarm extends StatefulWidget {
   const Alarm({super.key});
@@ -13,7 +14,7 @@ class Alarm extends StatefulWidget {
   State<Alarm> createState() => _AlarmState();
 }
 
-class _AlarmState extends State<Alarm> {
+class _AlarmState extends State<Alarm> with WindowListener {
   final double headerSize = 40;
   final double columnWidth = 300;
   final _player = AudioPlayer();
@@ -29,6 +30,7 @@ class _AlarmState extends State<Alarm> {
   void initState() {
     super.initState();
     store.addListener(_listener);
+    windowManager.addListener(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final int departamentId = await _getDepartamentId();
       store.getBreaktimes(departamentId);
@@ -76,6 +78,16 @@ class _AlarmState extends State<Alarm> {
     });
   }
 
+  Future<void> _showWindow() async {
+    // await windowManager.setFullScreen(true);
+    await windowManager.setAlwaysOnTop(true);
+  }
+
+  Future<void> _hideWindow() async {
+    // await windowManager.setFullScreen(false);
+    await windowManager.setAlwaysOnTop(false);
+  }
+
   void _startTimer() {
     var positiveDurations = breaktimes
         .where((element) => element.secondsUntil > Duration.zero)
@@ -83,19 +95,18 @@ class _AlarmState extends State<Alarm> {
     for (var i = 0; i < positiveDurations.length; i++) {
       var element = breaktimes[i];
 
-      print(element.secondsUntil);
-
       if (element.secondsUntil < Duration.zero) {
         continue;
       }
 
-      _timer = Timer(element.secondsUntil, () {
+      _timer = Timer(element.secondsUntil, () async {
         var newLabel = 'Não há pausas';
 
         if (element != positiveDurations.last) {
           newLabel = positiveDurations[i + 1].time;
         }
 
+        await _showWindow();
         _playMusic();
         _updateLabel(newLabel);
       });
@@ -105,6 +116,7 @@ class _AlarmState extends State<Alarm> {
   @override
   void dispose() {
     store.removeListener(_listener);
+    windowManager.removeListener(this);
     _timer.cancel();
     _player.dispose();
     super.dispose();
@@ -164,9 +176,12 @@ class _AlarmState extends State<Alarm> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor:
                                   const Color.fromARGB(255, 232, 179, 155)),
-                          onPressed: _stopMusic,
+                          onPressed: () {
+                            _stopMusic();
+                            _hideWindow();
+                          },
                           child: const Text(
-                            'Parar Musica',
+                            'Pular pausa',
                             style: TextStyle(
                                 fontSize: 15, fontWeight: FontWeight.bold),
                           )),
