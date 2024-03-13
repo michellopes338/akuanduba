@@ -1,16 +1,14 @@
 # akuanduba
 
-A new Flutter project.
+## Descrição
+O Akuanduba é um projeto que visa promover o bem-estar dos trabalhadores em setores administrativos, oferecendo uma pausa programada durante o dia por meio de um alarme que toca música em horários específicos. O objetivo é contribuir para a saúde mental, proporcionando momentos de relaxamento e alívio do estresse ao longo do dia de trabalho.
 
-## Getting Started
+## Funcionalidades
+- Interface intuitiva para fácil configuração e uso.
 
-This project is a starting point for a Flutter application.
+## Uso
+1. Abra o aplicativo.
+2. Deixe o Akuanduba rodando em segundo plano e aproveite suas pausas programadas!
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Status do projeto
+O Akuanduba está em desenvolvimento ativo e atualmente está na versão 1.0. Novas funcionalidades e melhorias estão sendo planejadas para as próximas versões.
