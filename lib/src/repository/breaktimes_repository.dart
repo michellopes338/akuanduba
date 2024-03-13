@@ -1,35 +1,25 @@
 import 'dart:convert';
 import 'dart:math';
 
-import 'package:http/http.dart' as http;
 import 'package:pausabem/src/models/breaktimes_model.dart';
 
 class BreaktimesRepository {
-  final client = http.Client();
+  Future<List<BreaktimesModel>> getBreaktimes() async {
+    // var pause1 = DateTime.now().add(const Duration(minutes: 1));
+    // var hour1 = pause1.hour.toString().padLeft(2, '0');
+    // var minutes1 = pause1.minute.toString().padLeft(2, '0');
 
-  Future<List<BreaktimesModel>> getBreaktimes(int departamentId) async {
-    var pause1 = DateTime.now().add(const Duration(minutes: 1));
-    var hour1 = pause1.hour.toString().padLeft(2, '0');
-    var minutes1 = pause1.minute.toString().padLeft(2, '0');
-
-    var pause2 = DateTime.now().add(const Duration(minutes: 2));
-    var hour2 = pause2.hour.toString().padLeft(2, '0');
-    var minutes2 = pause2.minute.toString().padLeft(2, '0');
-    String defaultBreakConfig =
-        '[{"id_pause": 1, "time": "$hour1:$minutes1", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "$hour2:$minutes2", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "14:00", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "16:30", "duration": "5", "breakId": 3}]';
-    try {
-      final response = await client
-          .get(Uri.parse('http://localhost:3000/timers/$departamentId'));
-
-      final jsonRaw = response.body;
-
-      if (response.statusCode == 200) {
-        return parseBreaktimes(jsonRaw);
-      }
-      return parseBreaktimes(defaultBreakConfig);
-    } on http.ClientException catch (err) {
-      return parseBreaktimes(defaultBreakConfig);
-    }
+    // var pause2 = DateTime.now().add(const Duration(minutes: 2));
+    // var hour2 = pause2.hour.toString().padLeft(2, '0');
+    // var minutes2 = pause2.minute.toString().padLeft(2, '0');
+    // String defaultBreakConfig = '[{"id_pause": 1, "time": "$hour1:$minutes1", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "$hour2:$minutes2", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "14:00", "duration": "5", "breakId": 3},{"id_pause": 1, "time": "16:30", "duration": "5", "breakId": 3}]';
+    String defaultBreakConfig = """[
+      {"id_pause": 1, "time": "10:00", "duration": "5", "breakId": 3},
+      {"id_pause": 2, "time": "14:00", "duration": "5", "breakId": 3},
+      {"id_pause": 3, "time": "16:30", "duration": "5", "breakId": 3},
+      {"id_pause": 4, "time": "20:03", "duration": "5", "breakId": 3}
+    ]""";
+    return parseBreaktimes(defaultBreakConfig);
   }
 
   Duration? calcDuration(String duration) {

@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:pausabem/pages/LoadScreen.dart';
+import 'package:pausabem/pages/Alarm.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -44,7 +44,7 @@ class MyApp extends StatelessWidget {
 
         return child;
       },
-      home: const LoadScreen(),
+      home: const Alarm(),
     );
   }
 }

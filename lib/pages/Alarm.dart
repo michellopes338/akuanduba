@@ -4,7 +4,6 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:pausabem/src/models/breaktimes_model.dart';
 import 'package:pausabem/src/stores/breaktimes_store.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 class Alarm extends StatefulWidget {
@@ -32,16 +31,8 @@ class _AlarmState extends State<Alarm> with WindowListener {
     store.addListener(_listener);
     windowManager.addListener(this);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final int departamentId = await _getDepartamentId();
-      store.getBreaktimes(departamentId);
+      store.getBreaktimes();
     });
-  }
-
-  Future<int> _getDepartamentId() async {
-    final prefs = await SharedPreferences.getInstance();
-    final int? id = prefs.getInt('departamentId');
-
-    return id!;
   }
 
   void _listener() {
@@ -53,7 +44,7 @@ class _AlarmState extends State<Alarm> with WindowListener {
   }
 
   Future<void> _playMusic() async {
-    await _player.play(AssetSource('/songs/Over_the_Horizon.m4a'));
+    await _player.play(AssetSource('songs/song.mp3'));
   }
 
   Future<void> _stopMusic() async {
@@ -79,31 +70,32 @@ class _AlarmState extends State<Alarm> with WindowListener {
   }
 
   Future<void> _showWindow() async {
-    // await windowManager.setFullScreen(true);
     await windowManager.setAlwaysOnTop(true);
   }
 
   Future<void> _hideWindow() async {
-    // await windowManager.setFullScreen(false);
     await windowManager.setAlwaysOnTop(false);
   }
 
+  int _roof(int value, int maxValue) {
+    return value > maxValue ? maxValue : value;
+  }
+
   void _startTimer() {
+    String newLabel;
+    int next;
     var positiveDurations = breaktimes
         .where((element) => element.secondsUntil > Duration.zero)
         .toList();
     for (var i = 0; i < positiveDurations.length; i++) {
-      var element = breaktimes[i];
-
-      if (element.secondsUntil < Duration.zero) {
-        continue;
-      }
+      var element = positiveDurations[i];
 
       _timer = Timer(element.secondsUntil, () async {
-        var newLabel = 'Não há pausas';
+        next = _roof(i, positiveDurations.length);
+        newLabel = positiveDurations[next].time;
 
-        if (element != positiveDurations.last) {
-          newLabel = positiveDurations[i + 1].time;
+        if (element == positiveDurations.last) {
+          newLabel = 'Não há pausas';
         }
 
         await _showWindow();

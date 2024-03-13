@@ -6,8 +6,8 @@ class BreaktimesStore extends ValueNotifier<BreaktimesState> {
   BreaktimesStore() : super(BreaktimesState.init());
   final repository = BreaktimesRepository();
 
-  Future<void> getBreaktimes(int departamentId) async {
-    final breaktimes = await repository.getBreaktimes(departamentId);
+  Future<void> getBreaktimes() async {
+    final breaktimes = await repository.getBreaktimes();
     value = value.copyWith(breaktimes: breaktimes);
   }
 }
